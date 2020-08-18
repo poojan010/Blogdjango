@@ -1,0 +1,70 @@
+{% extends 'basic.html' %}
+{% block title %} BlogPost {% endblock title%}
+
+
+{% block body %} 
+{% load humanize %}
+
+<div class="container">
+        <h2 class="blog-post-title">{{post.title}}</h2>
+        <p class="blog-post-meta">{{post.timeStamp}} by <a href="/about">{{post.author}}</a></p>
+
+        <p>{{post.content}}</p>
+        <hr>
+</div>
+<div class="container">
+	<H3>Comments ({{comments.count}})</H3>
+	{% if user.is_authenticated %}
+	<form action="/blog/postComment" method="post">
+		{% csrf_token %}
+		<div class="form-group my-3">
+		<label>Post your Comment</label>
+		<input type="text" class="form-control" name="comment" placeholder="Enter Comment" required>
+		</div>
+		<input type="hidden" name="postSno" value="{{post.sno}}">
+		<input type="hidden" name="parentSno" value="">
+		<button type="submit" class="btn btn-primary mx-1">Submit</button>
+	</form>
+	{% else %}
+	<h3>Sign in to post Comment.</h3>
+	{% endif %}
+	{% for comment in comments %}
+	<div class="row my-4">
+        <div class="col-md-1">
+        	<img class="rounded mx-auto d-block w-100 p-2 border border-dark" src="/static/img/user.jpg" alt="">
+        </div>
+        <div class="col-md-10">
+        	<b>{{comment.user.username}}</b><span class="badge badge-secondary mx-1" >{{comment.timeStamp | naturaltime}} </span>
+        	<div>{{comment.comment}}</div>
+        	<div class="reply mx-0">
+  					<button class="btn btn-sm btn-primary my-2" type="button" data-toggle="collapse" data-target="#replybox{{comment.sno}}" aria-expanded="false" aria-controls="replybox{{comment.sno}}">Reply</button>
+				<div class="collapse" id="replybox{{comment.sno}}">
+  					<div class="card card-body">
+    					<form action="/blog/postComment" method="post">
+							{% csrf_token %}
+							<div class="form-group my-3">
+							<label>Post your Reply</label>
+							<input type="text" class="form-control" name="comment" placeholder="Enter Comment" required>
+							<input type="hidden" name="parentSno" value="{{comment.sno}}">
+							</div>
+							<input type="hidden" name="postSno" value="{{post.sno}}">
+							<button type="submit" class="btn btn-primary mx-1">Submit</button>
+						</form>
+  					</div>
+				</div>
+				<div class="replies bg-danger my-2">
+					{% for key,values  in replyDict.items  %}
+						{% if key == comment.sno %}
+							{% for value in values %}
+							{{value}}
+							{% endfor %}
+						{% endif%}
+					{% endfor %}
+				</div>
+        	</div>
+        </div>
+    </div>
+	{% endfor %}
+	
+</div>
+{% endblock body %}
